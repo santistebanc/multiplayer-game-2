@@ -12,7 +12,7 @@ class GameScene extends Scene {
 
   init() {
     this.io = geckos({
-      iceServers: process.env.NODE_ENV === 'production' ? iceServers : [],
+      iceServers: iceServers,
     })
     this.io.addServer(this.game.server)
   }
