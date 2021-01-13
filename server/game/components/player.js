@@ -1,5 +1,5 @@
 class Player extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, playerId, x = 200, y = 200, dummy = false) {
+  constructor(scene, playerId, x = 200, y = 200) {
     super(scene, x, y, '')
     scene.add.existing(this)
     scene.physics.add.existing(this)
@@ -15,8 +15,6 @@ class Player extends Phaser.Physics.Arcade.Sprite {
     this.playerId = playerId
     this.move = {}
 
-    this.setDummy(dummy)
-
     this.body.setSize(32, 48)
 
     this.prevNoMovement = true
@@ -26,28 +24,15 @@ class Player extends Phaser.Physics.Arcade.Sprite {
     scene.events.on('update', this.update, this)
   }
 
-  setDummy(dummy) {
-    if (dummy) {
-      this.body.setBounce(1)
-      this.scene.time.addEvent({
-        delay: Phaser.Math.RND.integerInRange(45, 90) * 1000,
-        callback: () => this.kill()
-      })
-    } else {
-      this.body.setBounce(0)
-    }
-  }
-
   kill() {
     this.dead = true
     this.setActive(false)
   }
 
-  revive(playerId, dummy) {
+  revive(playerId) {
     this.playerId = playerId
     this.dead = false
     this.setActive(true)
-    this.setDummy(dummy)
     this.setVelocity(0)
   }
 

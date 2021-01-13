@@ -6,6 +6,7 @@ const SI = new SnapshotInterpolation()
 const { Scene } = require('phaser')
 const Player = require('./components/player')
 
+const { snapshotModel } = require('../../shared/models')
 
 class GameScene extends Scene {
 
@@ -81,13 +82,15 @@ class GameScene extends Scene {
     const dudes = []
 
     this.playersGroup.children.iterate((player) => {
-      dudes.push({ id: player.playerId, x: player.x, y: player.y, dead: player.dead })
+      dudes.push({ id: player.playerId, x: player.x, y: player.y })
       player.postUpdate()
     })
 
-    const snapshot = SI.snapshot.create(dudes)
+    const snapshot = SI.snapshot.create({ players: dudes })
 
-    this.io.room().emit('snapshot', snapshot)
+    const buffer = snapshotModel.toBuffer(snapshot)
+
+    this.io.raw.room().emit(buffer)
   }
 }
 

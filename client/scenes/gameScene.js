@@ -4,6 +4,7 @@ import Cursors from '../components/cursors'
 import Controls from '../components/controls'
 import FullscreenButton from '../components/fullscreenButton'
 import { SnapshotInterpolation } from '@geckos.io/snapshot-interpolation';
+import { snapshotModel } from '../../shared/models'
 
 const SI = new SnapshotInterpolation(30) // 30 FPS
 
@@ -37,8 +38,10 @@ export default class GameScene extends Scene {
 
     FullscreenButton(this)
 
-    this.channel.on('snapshot', snapshot => {
-      SI.snapshot.add(snapshot)
+    this.channel.onRaw(buffer => {
+
+      const snapshot = snapshotModel.fromBuffer(buffer)
+      SI.addSnapshot(snapshot)
     })
 
     this.channel.on('removePlayer', playerId => {
@@ -60,24 +63,21 @@ export default class GameScene extends Scene {
   }
 
   update() {
-    const snap = SI.calcInterpolation('x y')
+    const snap = SI.calcInterpolation('x y', 'players')
     if (!snap) return
-
+    
     const { state } = snap
     if (!state) return
-
+    
     state.forEach(dude => {
-      const { x, y, dead, id } = dude
-      const alpha = dead ? 0 : 1
+      const { x, y, id } = dude
       const exists = this.dudes.has(id)
 
       if (!exists) {
         let _dude = new Player(this, id, x || 200, y || 200);
-        _dude.setAlpha(alpha)
         this.dudes.set(id, { dude: _dude })
       } else {
         const _dude = this.dudes.get(id).dude
-        _dude.setAlpha(alpha)
         _dude.setPosition(x, y)
       }
     })
