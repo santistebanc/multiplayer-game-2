@@ -4,20 +4,16 @@ class Player extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this)
     scene.physics.add.existing(this)
 
+    this.upToDate = false
+
     this.scene = scene
 
-    this.prevX = -1
-    this.prevY = -1
-
     this.dead = false
-    this.prevDead = false
 
     this.playerId = playerId
     this.move = {}
 
-    this.body.setSize(32, 48)
-
-    this.prevNoMovement = true
+    this.body.setSize(32, 32)
 
     this.setCollideWorldBounds(true)
 
@@ -58,9 +54,14 @@ class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   postUpdate() {
-    this.prevX = this.x
-    this.prevY = this.y
-    this.prevDead = this.dead
+    if (this.prevX !== this.x || this.prevY !== this.y || this.prevDead !== this.dead) {
+      this.upToDate = false;
+      this.prevX = this.x
+      this.prevY = this.y
+      this.prevDead = this.dead
+    } else {
+      this.upToDate = true;
+    }
   }
 }
 

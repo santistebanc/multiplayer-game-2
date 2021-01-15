@@ -8,6 +8,7 @@ const Player = require('./components/player')
 
 const { snapshotModel } = require('../../shared/models')
 
+let counter = 0;
 class GameScene extends Scene {
 
   constructor() {
@@ -78,11 +79,11 @@ class GameScene extends Scene {
     this.tick++
 
     // only send the update to the client at 30 FPS (save bandwidth)
-    if (this.tick % 2 !== 0) return
+    if (this.tick % 2 === 1) return
     const dudes = []
 
     this.playersGroup.children.iterate((player) => {
-      dudes.push({ id: player.playerId, x: player.x, y: player.y })
+      dudes.push({ id: player.playerId, x: player.x, y: player.y, dead: player.dead })
       player.postUpdate()
     })
 

@@ -39,18 +39,13 @@ export default class GameScene extends Scene {
     FullscreenButton(this)
 
     this.channel.onRaw(buffer => {
-
       const snapshot = snapshotModel.fromBuffer(buffer)
-      SI.addSnapshot(snapshot)
+      SI.snapshot.add(snapshot)
     })
 
     this.channel.on('removePlayer', playerId => {
-      try {
-        this.dudes.get(playerId).dude.destroy()
-        this.dudes.delete(playerId);
-      } catch (error) {
-        console.error(error.message)
-      }
+      this.dudes.get(playerId).dude.destroy()
+      this.dudes.delete(playerId);
     })
 
     this.channel.on('getId', playerId36 => {
@@ -65,20 +60,21 @@ export default class GameScene extends Scene {
   update() {
     const snap = SI.calcInterpolation('x y', 'players')
     if (!snap) return
-    
+
     const { state } = snap
     if (!state) return
-    
+
     state.forEach(dude => {
-      const { x, y, id } = dude
+      const { x, y, id, dead } = dude
       const exists = this.dudes.has(id)
 
       if (!exists) {
-        let _dude = new Player(this, id, x || 200, y || 200);
+        let _dude = new Player(this, id, x, y);
         this.dudes.set(id, { dude: _dude })
       } else {
         const _dude = this.dudes.get(id).dude
         _dude.setPosition(x, y)
+        _dude.setVisible(!dead)
       }
     })
   }
