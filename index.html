@@ -10,9 +10,29 @@
       body {
         margin: 0;
         padding: 0;
+        position: relative;
+      }
+      #game {
+        position: fixed;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+      }
+      #ui {
+        position: fixed;
+        height: 100vh;
+        width: 100vw;
+        pointer-events: none;
+      }
+      #ui * {
+        position: absolute;
+        pointer-events: all;
       }
     </style>
-    <title>Phaser 3 Game</title>
+    <title>Multiplayer Game</title>
   </head>
-  <body></body>
+  <body>
+    <div id="game"></div>
+    <div id="ui" ><input type='text' style='width: 100px; top: 40px; right: 150px;'/></div>
+  </body>
 </html>

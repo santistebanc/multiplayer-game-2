@@ -1,24 +1,17 @@
-/// <reference path="../phaser.d.ts" />
+import geckos from '@geckos.io/client'
+import Game from './game'
 
-import '@babel/polyfill'
-
-import Phaser, { Game } from 'phaser'
-import BootScene from './scenes/bootScene'
-import GameScene from './scenes/gameScene'
-import FullScreenEvent from './components/fullscreenEvent'
-
-const config = {
-  type: Phaser.AUTO,
-  scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: 896,
-    height: 504
-  },
-  scene: [BootScene, GameScene]
-}
+export let game;
 
 window.addEventListener('load', () => {
-  const game = new Game(config)
-  FullScreenEvent(() => resize(game))
+
+  const channel = geckos({ port: 1444 })
+
+  channel.onConnect(error => {
+    if (error) console.error(error.message)
+
+    channel.on('ready', ({playerId}) => {
+      game = new Game(channel, playerId)
+    })
+  })
 })

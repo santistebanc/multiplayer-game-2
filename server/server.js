@@ -3,12 +3,12 @@ const http = require('http')
 const cors = require('cors')
 const compression = require('compression')
 const path = require('path')
-const PhaserGame = require('./game/game')
 const app = express()
 const server = http.createServer(app)
-
-new PhaserGame(server)
 const port = 1444
+const Game = require('./game').default
+
+new Game(server);
 
 app.use(cors())
 app.use(compression())
