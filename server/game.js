@@ -17,7 +17,7 @@ class Game {
       allowSleep: true,
     });
     this.io = geckos({
-      iceServers: [],
+      iceServers: process.env.NODE_ENV === 'production' ? iceServers : [],
     })
     this.io.addServer(server)
 
@@ -34,11 +34,14 @@ class Game {
       })
 
       channel.on('input', (data) => {
-        const { arrows, pointer } = data;
-        const vx = arrows === 8 || arrows === 9 || arrows === 10 ? 50 : arrows === 4 || arrows === 5 || arrows === 6 ? -50 : 0
-        const vy = arrows === 1 || arrows === 5 || arrows === 9 ? -50 : arrows === 2 || arrows === 6 || arrows === 10 ? 50 : 0
         if (channel.player) {
-          channel.player.vessel.body.setLinearVelocity(Vec2(vx, vy))
+          const { arrows, pointer } = data;
+          const vx = arrows === 8 || arrows === 9 || arrows === 10 ? 2000 : arrows === 4 || arrows === 5 || arrows === 6 ? -2000 : 0
+          const vy = arrows === 1 || arrows === 5 || arrows === 9 ? 2000 : arrows === 2 || arrows === 6 || arrows === 10 ? -2000 : 0
+          const angle = channel.player.vessel.body.getAngle();
+          const deltaY = Math.cos(angle) * vx + Math.sin(angle) * vy
+          const deltaX = Math.cos(angle + Math.PI / 2) * vx + Math.sin(angle + Math.PI / 2) * vy
+          channel.player.vessel.body.applyForceToCenter(Vec2(deltaX, deltaY), true)
           const { x, y } = channel.player.vessel.body.getPosition()
           channel.player.vessel.body.setAngle(Math.atan2(pointer.y - y, pointer.x - x));
         }

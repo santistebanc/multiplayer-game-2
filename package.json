@@ -7,12 +7,12 @@
     "start": "npm run dev",
     "dev": "npm-run-all --parallel parcel:serve server:serve",
     "build": "npm run parcel:build",
-    "play": "NODE_ENV=production node server/server.js",
+    "play": "NODE_ENV=production node server/index.js",
     "test": "node test/test.js",
-    "pm2:start": "NODE_ENV=production pm2 start server/server.js --max-memory-restart 240M",
+    "pm2:start": "NODE_ENV=production pm2 start server/index.js --max-memory-restart 240M",
     "parcel:build": "parcel build index.html --no-source-maps",
     "parcel:serve": "parcel serve index.html --no-source-maps",
-    "server:serve": "nodemon --delay 500ms server/server.js"
+    "server:serve": "nodemon --delay 500ms server/index.js"
   },
   "keywords": [],
   "author": "",

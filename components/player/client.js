@@ -1,4 +1,4 @@
-import { game } from '../../client/client'
+import { game } from '../../client'
 
 class Player {
     static readSnapshot = function (list, snap) {

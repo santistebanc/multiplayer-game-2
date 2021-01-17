@@ -4,19 +4,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <script src="client/client.js"></script>
+    <script src="client/index.js"></script>
     <style>
       html,
       body {
         margin: 0;
         padding: 0;
         position: relative;
+        background-color: black;
+        font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande',
+          'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
       }
       #game {
         position: fixed;
         height: 100vh;
         width: 100vw;
         overflow: hidden;
+        cursor: none;
+      }
+      #back {
+        position: fixed;
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #loading {
+        font-size: 40px;
+        color: white;
       }
       #ui {
         position: fixed;
@@ -32,7 +48,12 @@
     <title>Multiplayer Game</title>
   </head>
   <body>
+    <div id="back">
+      <span id="loading">Loading</span>
+    </div>
     <div id="game"></div>
-    <div id="ui" ><input type='text' style='width: 100px; top: 40px; right: 150px;'/></div>
+    <div id="ui">
+      <input type="text" style="width: 100px; top: 40px; right: 150px" />
+    </div>
   </body>
 </html>

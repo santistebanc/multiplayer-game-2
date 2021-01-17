@@ -9,7 +9,8 @@ class Soldier {
         this.id = count++;
         this.schema = schema;
         this.body = game.world.createDynamicBody({ position: Vec2(x, y), angle, userData: this });
-        this.body.createFixture(Circle(1), 10.0);
+        this.body.createFixture(Circle(0.5), 1);
+        this.body.setLinearDamping(20)
 
         this.game.state.add(this, 'soldiers')
     }

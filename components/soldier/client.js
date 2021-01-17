@@ -1,5 +1,5 @@
 import { Sprite } from 'pixi.js';
-import { game } from '../../client/client'
+import { game } from '../../client'
 
 class Soldier {
     static readSnapshot = function (list, snap) {
