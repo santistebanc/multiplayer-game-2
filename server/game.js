@@ -1,31 +1,34 @@
-const { World, Vec2 } = require('planck-js')
+const { World } = require('planck-js')
 const { setGameLoop } = require('node-gameloop');
 const geckos = require('@geckos.io/server').default
 const { iceServers } = require('@geckos.io/server')
+const { WorldState } = require('../state')
+const { GE_FPS, GE_VELOCITY_ITERATIONS, GE_POSITION_ITERATIONS, DATA_FRACTION, SIMULATED_LATENCY, SIMULATED_LOSS } = require('../constants');
 const Player = require('../components/player/server').default
-const WorldState = require('./state').default
-
-const FPS = 60;
-const VELOCITY_ITERATIONS = 10;
-const POSITION_ITERATIONS = 8;
 
 class Game {
   constructor(server) {
+    //tick increases on every frame
     this.tick = 0;
-    this.state = new WorldState()
+
+    //initialize world state store
+    this.state = new WorldState(this)
+
+    //initialize game engine world
     this.world = new World({
       allowSleep: true,
     });
+
+    //initialize io communication
     this.io = geckos({
       iceServers: process.env.NODE_ENV === 'production' ? iceServers : [],
     })
     this.io.addServer(server)
 
+    //check connections of users
     this.io.onConnection((channel) => {
       console.log('Connected user ' + channel.id)
-      const player = new Player(this)
-      channel.playerId = player.id;
-      channel.player = player;
+      const player = this.connectPlayer(channel.id)
       player.spawn()
 
       channel.onDisconnect(() => {
@@ -33,36 +36,61 @@ class Game {
         player.disconnect()
       })
 
+      //handle every input of client user (e.g. mouse, or keyboard press)
       channel.on('input', (data) => {
-        if (channel.player) {
-          const { arrows, pointer } = data;
-          const vx = arrows === 8 || arrows === 9 || arrows === 10 ? 2000 : arrows === 4 || arrows === 5 || arrows === 6 ? -2000 : 0
-          const vy = arrows === 1 || arrows === 5 || arrows === 9 ? 2000 : arrows === 2 || arrows === 6 || arrows === 10 ? -2000 : 0
-          const angle = channel.player.vessel.body.getAngle();
-          const deltaY = Math.cos(angle) * vx + Math.sin(angle) * vy
-          const deltaX = Math.cos(angle + Math.PI / 2) * vx + Math.sin(angle + Math.PI / 2) * vy
-          channel.player.vessel.body.applyForceToCenter(Vec2(deltaX, deltaY), true)
-          const { x, y } = channel.player.vessel.body.getPosition()
-          channel.player.vessel.body.setAngle(Math.atan2(pointer.y - y, pointer.x - x));
+        const func = () => {
+          player.input(data)
         }
-      })
+        if (SIMULATED_LATENCY || SIMULATED_LOSS) {
+          //simulate latency and package loss
+          if (Math.random() > (1 - SIMULATED_LOSS)) return
+          setTimeout(() => func(), SIMULATED_LATENCY + Math.random() * 50)
+        } else {
+          func()
+        }
+      }
+      )
 
-      channel.emit('ready', { playerId: channel.playerId })
+      //notify client communication connection server-client is ready
+      channel.emit('ready', { playerId: player.id })
     })
 
+    //game loop
     setGameLoop((delta) => {
+      this.update(delta)
+    }, 1000 / GE_FPS);
 
-      //compute step of game engine
-      this.world.step(1 / FPS, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+  }
+  update(delta) {
+    //compute step of game engine
+    this.world.step(delta, GE_VELOCITY_ITERATIONS, GE_POSITION_ITERATIONS);
 
-      // only send the update to the client at 30 FPS (save bandwidth)
-      if (this.tick++ % 2 === 0) return
-
-      const buffer = this.state.getBuffer()
+    //send updated objects state to all clients on every DATA_FRACTION ticks (saves bandwidth)
+    if (this.tick++ % DATA_FRACTION === 0) {
+      const buffer = this.state.getObjectsBuffer()
       this.io.raw.room().emit(buffer)
+    }
 
-    }, 1000 / FPS);
+    //send crucial state updates to all clients if there was any change
+    if (this.state.dirty) {
+      this.io.room().emit(
+        'update',
+        this.state.getUpdates(),
+        {
+          reliable: true,
+          interval: 150,
+          runs: 10
+        }
+      )
+    }
 
+  }
+  connectPlayer(channelId) {
+    const instance = new Player(this, { id: channelId })
+    return instance
+  }
+  disconnectPlayer(instance) {
+    this.state.players.remove(instance)
   }
 }
 

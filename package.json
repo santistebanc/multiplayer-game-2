@@ -1,11 +1,11 @@
 {
   "name": "gamey",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "npm run dev",
-    "dev": "npm-run-all --parallel parcel:serve server:serve",
+    "dev": "NODE_ENV=development npm-run-all --parallel parcel:serve server:serve",
     "build": "npm run parcel:build",
     "play": "NODE_ENV=production node server/index.js",
     "test": "node test/test.js",
