@@ -1,3 +1,4 @@
+require('@babel/polyfill')
 const { World } = require('planck-js')
 const { setGameLoop } = require('node-gameloop');
 const geckos = require('@geckos.io/server').default

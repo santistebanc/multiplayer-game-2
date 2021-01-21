@@ -85,10 +85,8 @@ class Game {
         interaction.on("pointermove", updateMousePos);
         updateMousePos()
 
-        const { up, down, left, right } = Input()
-        let prevMouseX = null;
-        let prevMouseY = null;
-        let prevKey = 0;
+        const { getArrows, getPointer } = Input(this)
+
 
         this.app.ticker.add((delta) => {
             this.state.clientTick()
@@ -96,36 +94,9 @@ class Game {
 
             if (player?.vessel) {
                 this.camera.followPlayer = player
-                //read user input (keyboard or mouse)
-                const mouse_loc = this.viewport.toWorld(interaction.mouse.global.x, interaction.mouse.global.y);
-                let key = 0;
-                if (up.isDown) {
-                    key += 1
-                }
-                if (down.isDown) {
-                    key += 2
-                }
-                if (left.isDown) {
-                    key += 4
-                }
-                if (right.isDown) {
-                    key += 8
-                }
 
-                const mouseX = +mouse_loc.x.toFixed(4);
-                const mouseY = +mouse_loc.y.toFixed(4);
-
-                let pointer;
-                let arrows;
-
-                if ((Number.isFinite(mouseX) && mouseX !== prevMouseX) || (Number.isFinite(mouseY) && mouseY !== prevMouseY)) {
-                    pointer = { x: mouseX, y: mouseY }
-                    prevMouseX = mouseX;
-                    prevMouseY = mouseY;
-                }
-                if (key !== prevKey) {
-                    arrows = key;
-                }
+                const { arrows } = getArrows()
+                const { pointer } = getPointer()
 
                 if (arrows || pointer) {
                     player.input({ pointer, arrows })
