@@ -41,23 +41,6 @@ class Game {
         })
         this.app.stage.addChild(this.viewport)
 
-        //listen for world updates from server
-        channel.onRaw(buffer => {
-            const func = () => {
-                this.state.readObjectsBuffer(buffer);
-            }
-            if (SIMULATED_LATENCY || SIMULATED_LOSS) {
-                //simulate latency and package loss
-                if (Math.random() > (1 - SIMULATED_LOSS)) return
-                setTimeout(() => func(), SIMULATED_LATENCY + Math.random() * 50)
-            } else {
-                func()
-            }
-        })
-        channel.on('update', (data) => {
-            this.state.updateFromServer(data)
-        })
-
         //load assets and after finishing loading run game
         this.app.loader.add('field', 'field.jpg').add('crosshair', 'crosshair.png').add('soldier', 'soldier.png').load((loader, resources) => {
             this.resources = resources;
@@ -74,6 +57,7 @@ class Game {
         const field = new Sprite(this.resources.field.texture);
         this.viewport.addChild(field);
 
+
         //set cursor
         this.cursor = new Sprite(this.resources.crosshair.texture);
         this.cursor.anchor.set(0.5, 0.5)
@@ -85,10 +69,11 @@ class Game {
         interaction.on("pointermove", updateMousePos);
         updateMousePos()
 
-        const { getArrows, getPointer } = Input(this)
+        const { getArrows, getPointer, getMouseMain } = Input(this)
 
 
         this.app.ticker.add((delta) => {
+
             this.state.clientTick()
             const player = this.state.players.list.get(this.playerId);
 
@@ -97,10 +82,11 @@ class Game {
 
                 const { arrows } = getArrows()
                 const { pointer } = getPointer()
+                const { mouseMain } = getMouseMain()
 
-                if (arrows || pointer) {
-                    player.input({ pointer, arrows })
-                    this.channel.emit('input', { arrows, pointer })
+                if (arrows || pointer || mouseMain) {
+                    player.input({ pointer, arrows, mouseMain })
+                    this.channel.emit('input', { arrows, pointer, mouseMain })
                 }
 
 
@@ -111,9 +97,20 @@ class Game {
 
             this.state.reconcile()
         })
+
+        this.channel.on('update', (data) => {
+            this.state.updateFromServer(data)
+        })
+        //listen for world updates from server
+        this.channel.onRaw(buffer => {
+            this.state.readObjectsBuffer(buffer);
+        })
+        this.channel.emit('getState')
     }
     mount() {
-        document.querySelector('#game').appendChild(this.app.view);
+        this.element = document.querySelector('#game')
+        this.element.style.cursor = 'none'
+        this.element.appendChild(this.app.view);
         // Listen for window resize events
         window.addEventListener('resize', this.resize.bind(this));
         this.resize()

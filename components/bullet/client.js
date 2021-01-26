@@ -1,19 +1,19 @@
-import { Sprite } from 'pixi.js';
+import { Graphics } from 'pixi.js';
 import { Vec2 } from 'planck-js';
-import { Soldier } from './common';
-class ClientSoldier extends Soldier {
+import { Bullet } from './common';
+
+class ClientBullet extends Bullet {
     constructor(game, props) {
         super(game, props)
         const { x, y, angle } = props
 
-        this.sprite = new Sprite(this.game.resources.soldier.texture);
-        this.sprite.x = x;
-        this.sprite.y = y;
-        this.sprite.anchor.x = 0.5;
-        this.sprite.anchor.y = 0.5;
-        this.sprite.rotation = angle;
+        this.graph = new Graphics();
+        this.graph.position.set(x, y)
+        this.graph.rotation = angle
 
-        this.game.viewport.addChild(this.sprite);
+        this.graph.moveTo(0, 0).lineStyle(5, 0xffffff).lineTo(50, 0)
+
+        this.game.viewport.addChild(this.graph);
     }
     reconcile(serverSnapshot) {
         const { x, y, angle } = serverSnapshot
@@ -24,9 +24,8 @@ class ClientSoldier extends Soldier {
     render() {
         const { x, y } = this.body.getPosition()
         const angle = this.body.getAngle()
-        this.sprite.x = x;
-        this.sprite.y = y;
-        this.sprite.rotation = angle;
+        this.graph.position.set(x, y)
+        this.graph.rotation = angle
     }
     kill() {
         super.kill()
@@ -34,4 +33,4 @@ class ClientSoldier extends Soldier {
     }
 }
 
-export default ClientSoldier
+export default ClientBullet

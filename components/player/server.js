@@ -16,10 +16,12 @@ class ServerPlayer extends Player {
                 player: this
             }
         )
+        this.game.state.dirty = true
     }
     disconnect() {
         this.vessel.kill()
         this.game.disconnectPlayer(this)
+        this.game.state.dirty = true
     }
 }
 

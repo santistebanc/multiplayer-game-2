@@ -45,6 +45,46 @@ export function keyboard(value) {
     return key;
 }
 
+export function mouse() {
+    let key = {};
+    key.isDown = false;
+    key.isUp = true;
+    //The `downHandler`
+    key.downHandler = event => {
+        if (key.isUp && key.press) key.press();
+        key.isDown = true;
+        key.isUp = false;
+        event.preventDefault();
+    };
+
+    //The `upHandler`
+    key.upHandler = event => {
+        if (key.isDown && key.release) key.release();
+        key.isDown = false;
+        key.isUp = true;
+        event.preventDefault();
+    };
+
+    //Attach event listeners
+    const downListener = key.downHandler.bind(key);
+    const upListener = key.upHandler.bind(key);
+
+    window.addEventListener(
+        "mousedown", downListener, false
+    );
+    window.addEventListener(
+        "mouseup", upListener, false
+    );
+
+    // Detach event listeners
+    key.unsubscribe = () => {
+        window.removeEventListener("mousedown", downListener);
+        window.removeEventListener("mouseup", upListener);
+    };
+
+    return key;
+}
+
 export default (game) => {
 
     const interaction = game.app.renderer.plugins.interaction;
@@ -55,9 +95,12 @@ export default (game) => {
     const down = keyboard('s');
     const right = keyboard('d');
 
+    const mouseMain = mouse()
+
     let prevMouseX = null;
     let prevMouseY = null;
     let prevKey = 0;
+    let prevMouse = 0;
 
     return {
         getArrows: () => {
@@ -91,6 +134,15 @@ export default (game) => {
             prevMouseY = mouseY;
 
             return { pos, prevPos, pointer: changed ? pos : undefined }
+        },
+        getMouseMain: () => {
+            let key = 0;
+            if (mouseMain.isDown) {
+                key = 1
+            }
+            prevMouse = key
+
+            return { key, prevKey, mouseMain: !!key ? key : undefined }
         }
     }
 

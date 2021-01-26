@@ -1,11 +1,12 @@
 require('@babel/polyfill')
-const { World } = require('planck-js')
+const { World, Vec2 } = require('planck-js')
 const { setGameLoop } = require('node-gameloop');
 const geckos = require('@geckos.io/server').default
 const { iceServers } = require('@geckos.io/server')
 const { WorldState } = require('../state')
 const { GE_FPS, GE_VELOCITY_ITERATIONS, GE_POSITION_ITERATIONS, DATA_FRACTION, SIMULATED_LATENCY, SIMULATED_LOSS } = require('../constants');
-const Player = require('../components/player/server').default
+const Player = require('../components/player/server').default;
+const Wall = require('../components/wall/server').default
 
 class Game {
   constructor(server) {
@@ -26,6 +27,17 @@ class Game {
     })
     this.io.addServer(server)
 
+
+    //create walls
+    let vertices = [
+      Vec2(1000, 1000),
+      Vec2(1400, 1000),
+      Vec2(1400, 2000),
+      Vec2(1000, 2000)
+    ];
+    const mauer = new Wall(this, { id: 0, vertices })
+
+
     //check connections of users
     this.io.onConnection((channel) => {
       console.log('Connected user ' + channel.id)
@@ -39,22 +51,25 @@ class Game {
 
       //handle every input of client user (e.g. mouse, or keyboard press)
       channel.on('input', (data) => {
-        const func = () => {
-          player.input(data)
-        }
-        if (SIMULATED_LATENCY || SIMULATED_LOSS) {
-          //simulate latency and package loss
-          if (Math.random() > (1 - SIMULATED_LOSS)) return
-          setTimeout(() => func(), SIMULATED_LATENCY + Math.random() * 50)
-        } else {
-          func()
-        }
-      }
-      )
+        player.input(data)
+      })
+
+      channel.on('getState', () => {
+        this.io.room().emit(
+          'update',
+          this.state.getUpdates(true),
+          {
+            reliable: true,
+            interval: 150,
+            runs: 10
+          }
+        )
+      })
 
       //notify client communication connection server-client is ready
       channel.emit('ready', { playerId: player.id })
     })
+
 
     //game loop
     setGameLoop((delta) => {
